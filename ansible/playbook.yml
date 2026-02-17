@@ -1,0 +1,51 @@
+- name: Golden Image vorbereiten
+  hosts: all
+  become: true
+  tasks:
+    - name: Paketquellen aktualisieren
+      apt:
+        update_cache: true
+
+    - name: Alle Pakete upgraden
+      apt:
+        upgrade: dist
+
+    - name: Grundlegende Pakete installieren
+      apt:
+        name:
+          - curl
+          - vim
+          - htop
+          - net-tools
+          - dnsutils
+          - iputils-ping
+          - traceroute
+          - fail2ban
+          - ca-certificates
+          - ntp
+        state: present
+
+    - name: Unnoetige Pakete entfernen
+      apt:
+        name:
+          - snapd
+          - popularity-contest
+          - telnet
+        state: absent
+
+    - name: Root-Login per SSH deaktivieren
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: 'PermitRootLogin no'
+
+    - name: Passwort-Login per SSH deaktivieren
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+
+    - name: Paket-Cache aufraeumen
+      apt:
+        autoclean: true
+        autoremove: true
