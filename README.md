@@ -1,23 +1,87 @@
 # Meine Golden Image
 
-Dies ist ein simples Projekt. Es baut ein gehaertetes Ubuntu-Basisimage
-mit Packer, Ansible und cloud-init. Das fertige Image wird in meinen
-anderen Projekten als Grundlage fuer andere VMs genutzt.
+Ein kleines Hobbyprojekt. Es baut ein gehaertetes Ubuntu-Basisimage
+mit Packer, Ansible und cloud-init. Das fertige Image dient als
+Grundlage fuer andere VMs in weiteren Projekten.
 
-Packer startet ueber QEMU eine temporaere VM aus dem Ubuntu Cloud-Image.
-Cloud-init richtet dabei den SSH-Zugang ein, damit Packer sich verbinden kann.
-Dann laeuft Ansible durch, aktualisiert das System, installiert Grundpakete
-wie curl, vim, htop, fail2ban und Netzwerk-Diagnosetools, entfernt unnoetige
-Pakete wie snapd und haertet die SSH-Konfiguration. Am Ende faehrt Packer
-die VM herunter und speichert das Ergebnis als Golden Image unter
-output-ubuntu-vm/golden-ubuntu.qcow2.
+## Warum ein Golden Image?
 
-Voraussetzungen: Packer (>= 1.9.0), Ansible, QEMU mit KVM-Unterstuetzung
-und ein Ubuntu 24.04 Cloud-Image.
+Das Cloud-Image von Canonical ist schon recht schlank, aber es kommen
+trotzdem Sachen mit die auf Servern nicht gebraucht werden, und es
+fehlen Tools die man eigentlich immer braucht. Statt das jedes Mal von
+Hand zu machen, baut dieses Projekt ein fertiges Basisimage. SSH wird
+gehaertet, fail2ban schuetzt vor Brute-Force, und unnoetige Pakete
+fliegen raus. Nebenbei ist es ein gutes Lernprojekt, um zu verstehen
+wie man mit Packer und Ansible einen reproduzierbaren Image-Build
+aufsetzt.
 
-    cp beispiel.pkrvars.hcl variables.auto.pkrvars.hcl
-    # Pfade in variables.auto.pkrvars.hcl anpassen
+## Wie es funktioniert
+
+Packer startet ueber QEMU eine temporaere VM aus dem Cloud-Image.
+Cloud-init setzt dabei nur ein temporaeres Passwort, damit Packer sich
+per SSH verbinden kann. Dann laeuft Ansible durch und macht den
+eigentlichen Job: System aktualisieren, Pakete installieren und
+entfernen, SSH haerten, fail2ban konfigurieren. Am Ende faehrt Packer
+die VM sauber herunter und speichert das Ergebnis als qcow2-Image
+unter output/golden-ubuntu.qcow2.
+
+## Schnellstart
+
+Voraussetzungen sind Packer (>= 1.9.0), Ansible und QEMU mit KVM.
+Dann einfach das Ubuntu 24.04 Cloud-Image in den input-Ordner legen
+und bauen:
+
+    cp /pfad/zum/ubuntu-24.04-server-cloudimg-amd64.img input/
     make build
+
+Das ist alles. Packer findet das Image automatisch und berechnet die
+Checksum selbst.
+
+Wer die VM-Ressourcen anpassen will (CPUs, RAM, Disk), kopiert die
+Beispieldatei und passt die Werte an. Packer laedt alle
+*.auto.pkrvars.hcl Dateien automatisch:
+
+    cp beispiel.pkrvars.hcl meine.auto.pkrvars.hcl
+
+## Projektstruktur
+
+    .
+    ├── Makefile                  # Build-Kommandos
+    ├── README.md
+    ├── ansible/
+    │   └── playbook.yml          # Haertung und Paketinstallation
+    ├── beispiel.pkrvars.hcl      # Beispiel fuer optionale Variablen
+    ├── cloud-init/
+    │   └── user-data.yml         # Temporaerer SSH-Zugang fuer den Build
+    ├── input/                    # Cloud-Image hier ablegen
+    ├── main.pkr.hcl              # Packer-Konfiguration
+    └── vars.pkr.hcl              # Variablen mit Defaults
+
+## Designentscheidungen
+
+**KVM als Accelerator:** Ohne KVM emuliert QEMU jeden CPU-Befehl in
+Software — ein Build der mit KVM 3 Minuten dauert, kann ohne locker
+30 Minuten brauchen. Da das Image sowieso fuer libvirt/KVM gebaut wird,
+ist KVM ohnehin vorhanden.
+
+**qcow2 statt raw:** qcow2 ist das Standardformat fuer libvirt/KVM und
+unterstuetzt Thin Provisioning, also nur belegter Platz wird gespeichert.
+Ein raw-Image waere ein 1:1-Abbild der vollen Disk-Groesse.
+
+**Expliziter Shutdown:** Ohne shutdown_command killt Packer den
+QEMU-Prozess direkt. Das kann das Dateisystem im
+Image beschaedigen. Mit dem Befehl faehrt die VM vorher sauber herunter.
+
+**Kein ntp:** Ubuntu 24.04 bringt systemd-timesyncd schon mit. Ein
+zusaetzliches ntp-Paket wuerde damit konkurrieren. Deshalb wird ntp
+sogar explizit entfernt, falls es doch vorinstalliert sein sollte.
+
+**fail2ban mit Jail:** Eher zu Lernzwecken. Das SSH-Jail sperrt IPs nach 3
+fehlgeschlagenen Logins fuer eine Stunde.
+
+**SSH-Handler in Ansible:** Aenderungen an der sshd_config werden erst
+aktiv wenn der Dienst neu startet. Ein Handler erledigt das automatisch,
+aber nur wenn sich wirklich etwas geaendert hat.
 
 ## Was das Playbook macht
 
@@ -33,10 +97,11 @@ und ein Ubuntu 24.04 Cloud-Image.
 | Installieren | traceroute | Routing-Probleme zwischen VMs finden |
 | Installieren | fail2ban | SSH vor Brute-Force-Angriffen schuetzen |
 | Installieren | ca-certificates | HTTPS-Verbindungen ermoeglichen |
-| Installieren | ntp | Zeitsynchronisation fuer Cluster und DBs |
+| Konfigurieren | fail2ban SSH-Jail | Sperrt IPs nach 3 Fehlversuchen fuer 1h |
 | Entfernen | snapd | Unnoetig auf Servern, spart Ressourcen |
 | Entfernen | popularity-contest | Sendet Nutzungsdaten, nicht gewuenscht |
 | Entfernen | telnet | Unsicheres Protokoll, Sicherheitsrisiko |
+| Entfernen | ntp | Konkurriert mit systemd-timesyncd |
 | Haerten | Root-Login per SSH | Verhindert direkten Root-Zugriff |
 | Haerten | Passwort-Login per SSH | Erzwingt Key-basierte Authentifizierung |
 | Aufraeumen | Paket-Cache | Haelt das Image klein |
