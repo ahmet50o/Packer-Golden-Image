@@ -22,7 +22,6 @@
           - traceroute
           - fail2ban
           - ca-certificates
-          - ntp
         state: present
 
     - name: Unnoetige Pakete entfernen
@@ -31,7 +30,18 @@
           - snapd
           - popularity-contest
           - telnet
+          - ntp
         state: absent
+
+    - name: SSH-Jail fuer fail2ban konfigurieren
+      copy:
+        content: |
+          [sshd]
+          enabled  = true
+          port     = ssh
+          maxretry = 3
+          bantime  = 1h
+        dest: /etc/fail2ban/jail.d/ssh.conf
 
     - name: Root-Login per SSH deaktivieren
       lineinfile:
