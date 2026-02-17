@@ -15,7 +15,7 @@ packer {
 
 source "qemu" "ubuntu-vm" {
   iso_url      = var.image_path
-  iso_checksum = var.image_checksum
+  iso_checksum = "sha256:${filesha256(var.image_path)}"
   disk_image   = true
   vm_name      = var.vm_name
   cpus         = var.cpus

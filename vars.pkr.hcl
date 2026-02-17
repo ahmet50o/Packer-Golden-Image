@@ -4,12 +4,6 @@ variable "image_path" {
   default     = sort(fileset("input", "*.img"))[0]
 }
 
-variable "image_checksum" {
-  type        = string
-  description = "SHA256-Checksumme des Cloud-Images"
-  default     = "none"
-}
-
 variable "vm_name" {
   type        = string
   description = "Dateiname des fertigen Golden Images"
