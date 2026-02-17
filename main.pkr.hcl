@@ -23,7 +23,7 @@ source "qemu" "ubuntu-vm" {
   memory       = var.memory
   disk_size    = var.disk_size
   accelerator  = "kvm"
-  format       = "qcow"
+  format       = "qcow2"
   output_directory = "output"
 
   shutdown_command = "echo '${var.ssh_password}' | sudo -S shutdown -P now"
