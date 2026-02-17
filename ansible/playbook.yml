@@ -48,14 +48,22 @@
         path: /etc/ssh/sshd_config
         regexp: '^PermitRootLogin'
         line: 'PermitRootLogin no'
+      notify: SSH neu starten
 
     - name: Passwort-Login per SSH deaktivieren
       lineinfile:
         path: /etc/ssh/sshd_config
         regexp: '^PasswordAuthentication'
         line: 'PasswordAuthentication no'
+      notify: SSH neu starten
 
     - name: Paket-Cache aufraeumen
       apt:
         autoclean: true
         autoremove: true
+
+  handlers:
+    - name: SSH neu starten
+      service:
+        name: sshd
+        state: restarted
