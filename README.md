@@ -15,9 +15,9 @@ output-ubuntu-vm/golden-ubuntu.qcow2.
 Voraussetzungen: Packer (>= 1.9.0), Ansible, QEMU mit KVM-Unterstuetzung
 und ein Ubuntu 24.04 Cloud-Image.
 
-    packer init .
-    packer validate .
-    packer build .
+    cp beispiel.pkrvars.hcl variables.auto.pkrvars.hcl
+    # Pfade in variables.auto.pkrvars.hcl anpassen
+    make build
 
 ## Was das Playbook macht
 
