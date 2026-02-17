@@ -14,20 +14,20 @@ packer {
 }
 
 source "qemu" "ubuntu-vm" {
-  iso_url      = "home/user1/meine_imgs/ubuntu_cloud.img"
-  iso_checksum = "none"
+  iso_url      = var.image_path
+  iso_checksum = var.image_checksum
   disk_image   = true
-  vm_name      = "golden-ubuntu.qcow2"
-  cpus         = 2
-  memory       = 1024
-  disk_size    = 10000
+  vm_name      = var.vm_name
+  cpus         = var.cpus
+  memory       = var.memory
+  disk_size    = var.disk_size
 
-  
-  ssh_username = "ubuntu"
-  ssh_password = "ubuntu"
+
+  ssh_username = var.ssh_username
+  ssh_password = var.ssh_password
   ssh_timeout  = "5m"
 
-  
+
   cd_content = {
     "meta-data" = ""
     "user-data" = file("cloud-init/user-data.yml")

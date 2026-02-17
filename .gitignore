@@ -3,3 +3,4 @@ packer_cache/
 *.img
 *.qcow2
 *.iso
+*.pkrvars.hcl
