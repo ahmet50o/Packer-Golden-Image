@@ -9,6 +9,7 @@ validate:
 
 build:
 	packer init .
+	rm -rf output/
 	packer validate .
 	packer build .
 

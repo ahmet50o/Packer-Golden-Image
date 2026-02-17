@@ -13,9 +13,13 @@ packer {
   }
 }
 
+locals {
+  image_path = var.image_path != "" ? var.image_path : "input/${sort(fileset("input", "*.{img,qcow2}"))[0]}"
+}
+
 source "qemu" "ubuntu-vm" {
-  iso_url      = var.image_path
-  iso_checksum = "sha256:${filesha256(var.image_path)}"
+  iso_url      = local.image_path
+  iso_checksum = "none"
   disk_image   = true
 
   vm_name      = var.vm_name
@@ -30,8 +34,10 @@ source "qemu" "ubuntu-vm" {
 
   ssh_username = var.ssh_username
   ssh_password = var.ssh_password
-  ssh_timeout  = "5m"
+  ssh_timeout  = "20m"
+  ssh_handshake_attempts = 50
 
+  headless = true
 
   cd_content = {
     "meta-data" = ""

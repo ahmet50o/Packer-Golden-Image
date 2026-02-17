@@ -10,6 +10,10 @@
       apt:
         upgrade: dist
 
+    - name: Neustart nach Kernel-Update
+      reboot:
+        reboot_timeout: 300
+
     - name: Grundlegende Pakete installieren
       apt:
         name:
@@ -30,8 +34,10 @@
           - snapd
           - popularity-contest
           - telnet
+          - inetutils-telnet
           - ntp
         state: absent
+        purge: true
 
     - name: SSH-Jail fuer fail2ban konfigurieren
       copy:
@@ -57,13 +63,32 @@
         line: 'PasswordAuthentication no'
       notify: SSH neu starten
 
+    - name: Netplan fuer alle Ethernet-Interfaces setzen
+      copy:
+        content: |
+          network:
+            version: 2
+            ethernets:
+              all-eth:
+                match:
+                  name: "en*"
+                dhcp4: true
+        dest: /etc/netplan/99-golden-image.yaml
+        mode: '0600'
+
+    - name: Alte Netplan-Konfiguration entfernen
+      shell: find /etc/netplan/ -name "*.yaml" ! -name "99-golden-image.yaml" -delete
+
     - name: Paket-Cache aufraeumen
       apt:
         autoclean: true
         autoremove: true
 
+    - name: cloud-init zuruecksetzen
+      command: cloud-init clean
+
   handlers:
     - name: SSH neu starten
       service:
-        name: sshd
+        name: ssh
         state: restarted

@@ -34,8 +34,7 @@ und bauen:
     cp /pfad/zum/ubuntu-24.04-server-cloudimg-amd64.img input/
     make build
 
-Das ist alles. Packer findet das Image automatisch und berechnet die
-Checksum selbst.
+Das ist alles. Packer sucht das Image im Ordner input.
 
 Das Playbook nutzt apt und ist damit auf Ubuntu- und Debian-basierte
 Cloud-Images beschraenkt. Das Image im input-Ordner muss eine .img-
@@ -87,6 +86,20 @@ fehlgeschlagenen Logins fuer eine Stunde.
 aktiv wenn der Dienst neu startet. Ein Handler erledigt das automatisch,
 aber nur wenn sich wirklich etwas geaendert hat.
 
+**Neuer Netplan:** Cloud-Images vergeben beim Build unter
+QEMU andere Interface-Namen (z.B. ens3) als spaetere VMs unter libvirt
+(z.B. enp1s0). Eine statische Netplan-Konfiguration wuerde in einer anderen
+Umgebung kein Netzwerk bekommen. Der match-Mechanismus loest das
+hypervisor-unabhaengig fuer alle en*-Interfaces.
+
+**cloud-init reset:** Ohne cloud-init clean wuerde cloud-init beim ersten
+Boot einer neuen VM nicht laufen — SSH-Keys, Hostname und Netzwerk wuerden
+nicht konfiguriert. Der Reset stellt sicher, dass das Image als saubere
+Basis fuer neue VMs funktioniert.
+
+**purge statt remove:** apt remove laesst Konfigurationsdateien zurueck.
+apt purge entfernt alles vollstaendig und haelt das Image sauber.
+
 ## Was das Playbook macht
 
 | Aktion | Was | Warum |
@@ -104,7 +117,7 @@ aber nur wenn sich wirklich etwas geaendert hat.
 | Konfigurieren | fail2ban SSH-Jail | Sperrt IPs nach 3 Fehlversuchen fuer 1h |
 | Entfernen | snapd | Unnoetig auf Servern, spart Ressourcen |
 | Entfernen | popularity-contest | Sendet Nutzungsdaten, nicht gewuenscht |
-| Entfernen | telnet | Unsicheres Protokoll, Sicherheitsrisiko |
+| Entfernen | telnet, inetutils-telnet | Unsicheres Protokoll, Sicherheitsrisiko |
 | Entfernen | ntp | Konkurriert mit systemd-timesyncd |
 | Haerten | Root-Login per SSH | Verhindert direkten Root-Zugriff |
 | Haerten | Passwort-Login per SSH | Erzwingt Key-basierte Authentifizierung |
