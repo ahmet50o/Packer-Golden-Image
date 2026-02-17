@@ -17,11 +17,16 @@ source "qemu" "ubuntu-vm" {
   iso_url      = var.image_path
   iso_checksum = "sha256:${filesha256(var.image_path)}"
   disk_image   = true
+
   vm_name      = var.vm_name
   cpus         = var.cpus
   memory       = var.memory
   disk_size    = var.disk_size
+  accelerator  = "kvm"
+  format       = "qcow"
+  output_directory = "output"
 
+  shutdown_command = "echo '${var.ssh_password}' | sudo -S shutdown -P now"
 
   ssh_username = var.ssh_username
   ssh_password = var.ssh_password
