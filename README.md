@@ -28,7 +28,7 @@ unter output/golden-ubuntu.qcow2.
 ## Schnellstart
 
 Voraussetzungen sind Packer (>= 1.9.0), Ansible und QEMU mit KVM.
-Dann einfach das Ubuntu 24.04 Cloud-Image in den input-Ordner legen
+Dann einfach das Ubuntu 24.04 Cloud-Image (z.B. [hier](https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img) downloaden) in den input-Ordner legen
 und bauen:
 
     cp /pfad/zum/ubuntu-24.04-server-cloudimg-amd64.img input/
@@ -36,6 +36,10 @@ und bauen:
 
 Das ist alles. Packer findet das Image automatisch und berechnet die
 Checksum selbst.
+
+Das Playbook nutzt apt und ist damit auf Ubuntu- und Debian-basierte
+Cloud-Images beschraenkt. Das Image im input-Ordner muss eine .img-
+oder .qcow2-Datei sein.
 
 Wer die VM-Ressourcen anpassen will (CPUs, RAM, Disk), kopiert die
 Beispieldatei und passt die Werte an. Packer laedt alle
