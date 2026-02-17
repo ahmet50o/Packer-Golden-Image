@@ -5,3 +5,5 @@ packer_cache/
 *.iso
 *.pkrvars.hcl
 !beispiel.pkrvars.hcl
+input/*
+!input/.gitkeep

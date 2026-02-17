@@ -1,6 +1,7 @@
 variable "image_path" {
   type        = string
   description = "Pfad zum Ubuntu Cloud-Image"
+  default     = sort(fileset("input", "*.img"))[0]
 }
 
 variable "image_checksum" {
