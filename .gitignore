@@ -1,4 +1,5 @@
 output-*/
+output/
 packer_cache/
 *.img
 *.qcow2
