@@ -50,6 +50,7 @@ build {
   sources = ["source.qemu.ubuntu-vm"]
 
   provisioner "ansible" {
-    playbook_file = "ansible/playbook.yml"
+    playbook_file = "./ansible/playbook.yml"
+    extra_arguments = ["--scp-extra-args", "'-O'"]
   }
 }

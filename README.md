@@ -25,6 +25,27 @@ entfernen, SSH haerten, fail2ban konfigurieren. Am Ende faehrt Packer
 die VM sauber herunter und speichert das Ergebnis als qcow2-Image
 unter output/golden-ubuntu.qcow2.
 
+## Benoetigte Umgebung und Software
+
+Getestet auf Ubuntu 24.04.
+
+### Packer
+```bash
+wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt install packer
+```
+
+### Ansible und QEMU
+```bash
+sudo apt install ansible qemu-system-x86 qemu-utils
+```
+
+### KVM-Zugriff
+```bash
+sudo usermod -aG kvm $USER && newgrp kvm
+```
+
 ## Schnellstart
 
 Voraussetzungen sind Packer (>= 1.9.0), Ansible und QEMU mit KVM.
